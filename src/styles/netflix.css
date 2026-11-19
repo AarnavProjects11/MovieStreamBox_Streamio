@@ -1,0 +1,961 @@
+/*
+ * Netflix clone UI — direct port of netflix-clone-frontend/src/static/sass.
+ *
+ * The clone set `html { font-size: 62.5% }` so 1rem = 10px and wrote every
+ * dimension in rem. Stream Box cannot shrink the document root (Tailwind
+ * utilities all assume 1rem = 16px), so the values below are the clone's rem
+ * values converted to px 1:1. Everything is scoped to `.nf-root`, which is
+ * only rendered while the netflix theme is active.
+ */
+
+.nf-root {
+  --nf-bg: #111111;
+  --nf-dark: #171818;
+  --nf-white: rgb(221, 218, 218);
+  --nf-red: #e21221;
+  --nf-red-2: #f80616de;
+  --nf-green: rgb(92, 223, 92);
+  --nf-grey: rgb(122, 122, 122);
+
+  background-color: var(--nf-bg);
+  color: #fff;
+  font-family: "Hind", system-ui, sans-serif;
+  overflow-x: clip;
+  min-height: 100vh;
+}
+
+/* The clone inherited Hind everywhere; Stream Box applies Archivo Black to
+   headings from @layer base, so undo that inside the shell. */
+.nf-root h1,
+.nf-root h2,
+.nf-root h3 {
+  font-family: inherit;
+  letter-spacing: 0;
+}
+
+/* ---------- Navigation (layout/_navigation.scss) ---------- */
+
+.nf-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  width: 100%;
+  height: 67px;
+  background-color: transparent;
+  transition: all 1s;
+  transition-timing-function: ease-in;
+}
+
+.nf-nav.is-black {
+  background-color: var(--nf-bg);
+}
+
+/* TV-style bar: profile on the left, the link cluster centred in the viewport,
+   brand mark on the right. */
+.nf-nav__container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 67px;
+  padding: 0 34px;
+}
+
+.nf-nav__left,
+.nf-nav__right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.nf-nav__left {
+  gap: 16px;
+}
+
+.nf-nav__right {
+  margin-left: auto;
+}
+
+/* Compact brand mark, the equivalent of the clone's top-right logo. */
+.nf-nav__mark {
+  color: #e50914;
+  font-family: "Archivo Black", "Arial Black", Impact, sans-serif;
+  font-size: 38px;
+  line-height: 1;
+  letter-spacing: -2px;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 0 2px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+.nf-nav__center {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  height: 67px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nf-nav__link {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 15px;
+  border-radius: 18px;
+  font-weight: 500;
+  font-size: 17px;
+  color: #f2f2f2;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.nf-nav__link:hover {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.nf-nav__link.is-active {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.16);
+}
+
+.nf-nav__search {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  width: 36px;
+  margin-right: 4px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.nf-nav__search:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.nf-nav__search-icon {
+  height: 21px;
+  width: 21px;
+  display: block;
+  pointer-events: none;
+}
+
+/* Profile avatar + hover dropdown */
+.nf-profile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 67px;
+  flex-shrink: 0;
+}
+
+.nf-profile__avatar {
+  height: 34px;
+  width: 34px;
+  border-radius: 4px;
+  background-color: rgb(201, 199, 78);
+  color: #000;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: 5px;
+  overflow: hidden;
+}
+
+.nf-profile__avatar img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.nf-profile__arrow {
+  height: 10px;
+  width: 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+  filter: brightness(0) invert(1);
+  opacity: 0.85;
+}
+
+.nf-dropdown {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  max-height: calc(100vh - 74px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  width: 150px;
+  padding: 18px 0 0 10px;
+  background-color: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgb(73, 73, 73);
+  color: #fff;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.4s;
+  z-index: 200;
+}
+
+.nf-profile:hover .nf-dropdown,
+.nf-profile:focus-within .nf-dropdown {
+  opacity: 1;
+  visibility: visible;
+}
+
+.nf-dropdown__user {
+  font-size: 12px;
+  color: #c9c74e;
+  font-weight: 600;
+  margin-bottom: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 130px;
+}
+
+.nf-dropdown__item {
+  font-size: 12px;
+  color: #fff;
+  text-decoration: none;
+  padding-bottom: 10px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  text-align: left;
+  width: 130px;
+}
+
+.nf-dropdown__item:hover {
+  text-decoration: underline;
+}
+
+.nf-dropdown__divider {
+  border-top: 1px solid rgb(73, 73, 73);
+  margin: 4px 10px 8px 0;
+}
+
+/* Theme switch — the Netflix shell hides the app's own header, so the theme
+   menu lives here as well. */
+.nf-theme {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 67px;
+  flex-shrink: 0;
+}
+
+.nf-theme__btn {
+  display: flex;
+  align-items: center;
+  margin-left: 2px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  opacity: 0.9;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.nf-theme__btn svg {
+  height: 22px;
+  width: 22px;
+}
+
+.nf-theme__btn:hover,
+.nf-theme__btn[aria-expanded="true"] {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+.nf-theme__menu {
+  position: absolute;
+  top: 54px;
+  left: 0;
+  z-index: 300;
+  width: 220px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background-color: rgba(0, 0, 0, 0.94);
+  border: 1px solid rgb(73, 73, 73);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+
+.nf-theme__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nf-theme__item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nf-theme__item[aria-checked="true"] {
+  font-weight: 700;
+}
+
+.nf-theme__swatch {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.nf-theme__swatch span {
+  height: 14px;
+  width: 14px;
+  border-radius: 50%;
+  margin-left: -5px;
+  border: 1px solid rgba(0, 0, 0, 0.55);
+}
+
+.nf-theme__swatch span:first-child {
+  margin-left: 0;
+}
+
+.nf-theme__label {
+  flex: 1;
+}
+
+.nf-theme__check {
+  height: 14px;
+  width: 14px;
+  flex-shrink: 0;
+}
+
+/* ---------- Page frame ---------- */
+
+/* The fixed navbar overlays the page, so content is padded past it. */
+.nf-main {
+  padding-top: 67px;
+}
+
+/* The clone's translucent hero button, reused by page states. */
+.nf-btn {
+  cursor: pointer;
+  font-size: 16px;
+  color: #fff;
+  border: none;
+  font-weight: 700;
+  border-radius: 2px;
+  padding: 10px 35px;
+  margin-top: 10px;
+  background-color: rgba(51, 51, 51, 0.5);
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.nf-btn img {
+  width: 15px;
+  height: 15px;
+  margin-right: 10px;
+  display: block;
+}
+
+.nf-btn:hover {
+  color: #000;
+  background-color: #e6e6e6;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.nf-btn:hover img {
+  filter: invert(1);
+}
+
+/* ---------- Rows (Netflix TV layout) ---------- */
+
+.nf-rows {
+  background-color: var(--nf-bg);
+  position: relative;
+  z-index: 3;
+  padding: 26px 0 30px 45px;
+}
+
+.nf-row {
+  margin-bottom: 44px;
+}
+
+.nf-row__heading {
+  margin: 0 0 14px;
+  font-size: 18px;
+  font-weight: 500;
+  color: #e5e5e5;
+}
+
+.nf-row__track {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding-right: 45px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.nf-row__track::-webkit-scrollbar {
+  display: none;
+}
+
+/* The focused tile: a wide landscape card with the white focus ring. */
+.nf-spot {
+  flex: 0 0 auto;
+  width: 552px;
+  height: 300px;
+  padding: 0;
+  border: 3px solid #fff;
+  border-radius: 6px;
+  background: #1b1b1b;
+  cursor: pointer;
+  transition: transform 0.25s ease, border-color 0.2s;
+}
+
+.nf-spot:hover {
+  transform: scale(1.01);
+}
+
+.nf-spot__art {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 3px;
+}
+
+.nf-spot__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+/* Poster-only fallback: blurred wash behind the untouched poster. */
+.nf-spot__wash {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(30px) brightness(0.42);
+  transform: scale(1.15);
+}
+
+.nf-spot__poster {
+  position: relative;
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  margin-left: auto;
+}
+
+.nf-spot__scrim {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0) 34%,
+      rgba(0, 0, 0, 0.82) 100%
+    ),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0) 55%);
+  pointer-events: none;
+}
+
+.nf-spot__caption {
+  position: absolute;
+  left: 20px;
+  bottom: 16px;
+  max-width: 62%;
+  text-align: left;
+}
+
+.nf-spot__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #e5e5e5;
+  margin-bottom: 4px;
+}
+
+.nf-spot__eyebrow b {
+  color: #e50914;
+  font-family: "Archivo Black", "Arial Black", Impact, sans-serif;
+  font-size: 16px;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.nf-spot__title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 32px;
+  line-height: 1.05;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+}
+
+/* The rest of the row: portrait posters that light up on hover. */
+.nf-row__item {
+  flex: 0 0 auto;
+  padding: 0;
+  border: 3px solid transparent;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.nf-row__item:hover {
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+.nf-row__poster {
+  display: block;
+  height: 294px;
+  width: 196px;
+  object-fit: cover;
+  border-radius: 3px;
+  background-color: #181818;
+}
+
+/* Facts and synopsis for the focused tile, directly under the row. */
+.nf-row__details {
+  max-width: 660px;
+  padding-top: 18px;
+}
+
+.nf-row__meta {
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: #fff;
+}
+
+.nf-row__overview {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.55;
+  color: #c7c7c7;
+}
+
+.nf-row__empty {
+  padding: 20px 0 30px;
+  font-size: 14px;
+  color: rgb(150, 150, 150);
+}
+
+/* ---------- Modal + backdrop (components/_modal.scss, _backdrop.scss) ---------- */
+
+.nf-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background-color: rgba(17, 17, 17, 0.7);
+  transition: all 0.5s;
+}
+
+.nf-modal {
+  position: fixed;
+  z-index: 500;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 520px;
+  color: #fff;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  visibility: hidden;
+  box-shadow: 0 15px 40px rgba(23, 24, 24, 0.15);
+  transition: 0.5s 0.3s ease-out;
+}
+
+.nf-modal.is-show {
+  top: 25%;
+  visibility: visible;
+  opacity: 1;
+}
+
+.nf-modal__container {
+  background: linear-gradient(90deg, #000 50%, transparent);
+  width: 70%;
+  height: 100%;
+  padding: 30px 0 0 50px;
+  box-sizing: border-box;
+}
+
+.nf-modal__title {
+  font-size: 40px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.nf-modal__rating {
+  font-size: 20px;
+  color: var(--nf-green);
+}
+
+.nf-modal__info {
+  padding-top: 16px;
+  font-size: 20px;
+}
+
+.nf-modal__episode {
+  padding-top: 5px;
+  font-size: 20px;
+}
+
+.nf-modal__overview {
+  color: var(--nf-grey);
+  padding-top: 20px;
+  font-size: 20px;
+  width: 60%;
+  line-height: 1.2;
+  hyphens: auto;
+}
+
+.nf-modal__btn {
+  text-transform: uppercase;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: transparent;
+  color: #fff;
+  border: 0.5px solid var(--nf-grey);
+  border-radius: 2px;
+  font-size: 15px;
+  margin-top: 20px;
+  margin-right: 10px;
+  padding: 10px 20px;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  font-family: inherit;
+  text-decoration: none;
+}
+
+.nf-modal__btn:hover {
+  transform: scale(1.09);
+}
+
+.nf-modal__btn--red {
+  background-color: var(--nf-red-2);
+  border: none;
+}
+
+.nf-modal__btn img {
+  fill: #fff;
+  padding-right: 10px;
+  height: 14px;
+  width: 14px;
+  display: block;
+}
+
+/* ---------- Footer (layout/_footer.scss) ---------- */
+
+.nf-footer {
+  background-color: var(--nf-bg);
+  padding-top: 150px;
+  padding-bottom: 40px;
+  text-align: center;
+}
+
+.nf-footer__copy {
+  color: #fff;
+  font-size: 18px;
+  padding: 0 20px;
+}
+
+.nf-footer__link {
+  color: var(--nf-red-2);
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.nf-footer__link:hover {
+  color: orange;
+}
+
+/* ---------- Page states ---------- */
+
+.nf-empty {
+  padding: 120px 45px 40px;
+  min-height: 320px;
+}
+
+.nf-empty__title {
+  font-size: 32px;
+  font-weight: 700;
+  padding-bottom: 10px;
+}
+
+.nf-empty__text {
+  font-size: 18px;
+  color: rgb(160, 160, 160);
+  max-width: 520px;
+  line-height: 1.4;
+  padding-bottom: 20px;
+}
+
+.nf-credit {
+  font-size: 13px;
+  color: rgb(120, 120, 120);
+  padding: 10px 45px 0;
+}
+
+.nf-credit a {
+  color: rgb(170, 170, 170);
+  text-decoration: underline;
+}
+
+.nf-skeleton {
+  background-color: #181818;
+  animation: nf-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes nf-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.nf-skeleton--row {
+  height: 300px;
+  margin: 0 45px 24px 0;
+  border-radius: 6px;
+}
+
+/* ---------- Responsive (clone's breakpoints) ---------- */
+
+/* tab_port — 1184px: the clone shrank the root font to 50%, so everything
+   scales by roughly 0.8. Values below are that scaled equivalent. */
+@media only screen and (max-width: 1184px) {
+  .nf-nav__container {
+    padding: 0 26px;
+  }
+  .nf-nav__link {
+    height: 34px;
+    padding: 0 12px;
+    font-size: 15px;
+  }
+  .nf-nav__mark {
+    font-size: 32px;
+  }
+
+  .nf-rows {
+    padding: 20px 0 24px 36px;
+  }
+  .nf-row {
+    margin-bottom: 34px;
+  }
+  .nf-row__heading {
+    margin-bottom: 12px;
+    font-size: 16px;
+  }
+  .nf-spot {
+    width: 460px;
+    height: 250px;
+  }
+  .nf-spot__title {
+    font-size: 26px;
+  }
+  .nf-row__poster {
+    height: 244px;
+    width: 164px;
+  }
+  .nf-row__details {
+    max-width: 540px;
+    padding-top: 14px;
+  }
+  .nf-row__meta {
+    font-size: 14px;
+  }
+  .nf-row__overview {
+    font-size: 15px;
+  }
+
+  .nf-modal {
+    height: 416px;
+  }
+  .nf-modal__container {
+    background: linear-gradient(90deg, #000 55%, rgba(0, 0, 0, 0.733), transparent);
+    width: 88%;
+    padding-left: 30px;
+    
+  }
+  .nf-modal__title {
+    font-size: 32px;
+  }
+  .nf-modal__info,
+  .nf-modal__episode,
+  .nf-modal__overview {
+    font-size: 16px;
+  }
+  .nf-modal__overview {
+    width: 80%;
+  }
+  .nf-modal__btn {
+    font-size: 12px;
+    padding: 8px 16px;
+  }
+
+  .nf-empty {
+    padding-left: 36px;
+    padding-top: 100px;
+  }
+  .nf-credit {
+    padding-left: 36px;
+  }
+  .nf-skeleton--row {
+    height: 250px;
+    margin-right: 36px;
+  }
+}
+
+/* tab_medium — 980px: clone hides the nav links behind a single arrow and
+   makes the modal gradient span the full width. */
+@media only screen and (max-width: 980px) {
+  .nf-nav__container {
+    padding: 0 20px;
+  }
+  .nf-nav__link--optional {
+    display: none;
+  }
+
+  .nf-modal__container {
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.966) 65%, transparent);
+    width: 100%;
+  }
+  .nf-modal__overview {
+    width: 95%;
+    color: rgba(255, 255, 255, 0.877);
+  }
+}
+
+/* phone — 600px */
+@media only screen and (max-width: 600px) {
+  .nf-nav__container {
+    padding: 0 14px;
+  }
+  .nf-nav__left {
+    gap: 10px;
+  }
+  .nf-nav__mark {
+    font-size: 28px;
+  }
+  .nf-nav__link {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 15px;
+  }
+  .nf-nav__search {
+    height: 32px;
+    width: 32px;
+    margin-right: 2px;
+  }
+  .nf-nav__search-icon {
+    height: 19px;
+    width: 19px;
+  }
+  .nf-theme__menu {
+    width: 200px;
+  }
+
+  .nf-rows {
+    padding: 16px 0 20px 14px;
+  }
+  .nf-row {
+    margin-bottom: 28px;
+  }
+  .nf-row__heading {
+    margin-bottom: 10px;
+    font-size: 15px;
+  }
+  .nf-spot {
+    width: 320px;
+    height: 190px;
+  }
+  .nf-spot__caption {
+    left: 12px;
+    bottom: 10px;
+    max-width: 66%;
+  }
+  .nf-spot__title {
+    font-size: 22px;
+  }
+  .nf-row__poster {
+    height: 184px;
+    width: 120px;
+  }
+  .nf-row__details {
+    max-width: none;
+    padding: 12px 14px 0 0;
+  }
+  .nf-row__overview {
+    font-size: 14px;
+  }
+
+  .nf-modal {
+    height: 500px;
+  }
+  .nf-modal__container {
+    padding-top: 10px;
+    padding-left: 10px;
+  }
+  .nf-modal__title {
+    font-size: 26px;
+  }
+  .nf-modal__overview {
+    padding-top: 10px;
+    font-size: 17px;
+  }
+  .nf-modal__btn {
+    margin-top: 10px;
+  }
+
+  .nf-empty {
+    padding: 90px 14px 30px;
+  }
+  .nf-credit {
+    padding-left: 14px;
+  }
+  .nf-skeleton--row {
+    height: 190px;
+    margin-right: 14px;
+  }
+}

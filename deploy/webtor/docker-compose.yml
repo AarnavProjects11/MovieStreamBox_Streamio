@@ -1,0 +1,50 @@
+name: webtor
+
+services:
+  webtor:
+    image: ghcr.io/webtor-io/self-hosted:latest
+    container_name: webtor
+    restart: unless-stopped
+    environment:
+      # Public URL, including scheme. Caddy serves TLS for this hostname.
+      DOMAIN: https://${WEBTOR_DOMAIN:?set WEBTOR_DOMAIN in .env}
+      ADMIN_PASSWORD: ${WEBTOR_ADMIN_PASSWORD:?set WEBTOR_ADMIN_PASSWORD in .env}
+      # Disk housekeeping: start cleaning at 25% free, free up to 35%.
+      CLEANER_KEEP_FREE: ${CLEANER_KEEP_FREE:-25%}
+      CLEANER_FREE: ${CLEANER_FREE:-35%}
+      # Only flip this if you cannot use the embed allow-list.
+      # EMBED_ONLY_AUTHORIZED: "false"
+      # Route traffic through Gluetun/VPN:
+      # WAIT_FOR_VPN: "true"
+    # Not published to the host: only Caddy reaches it over the compose network.
+    expose:
+      - "8080"
+    volumes:
+      # /storage must stay a named volume (the embedded S3 store needs xattrs).
+      - data:/data
+      - pgdata:/pgdata
+      - storage:/storage
+
+  caddy:
+    image: caddy:2
+    container_name: webtor-caddy
+    restart: unless-stopped
+    depends_on:
+      - webtor
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      WEBTOR_DOMAIN: ${WEBTOR_DOMAIN:?set WEBTOR_DOMAIN in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  data:
+  pgdata:
+  storage:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,2 @@
+ALTER TABLE public.media_streams ADD COLUMN IF NOT EXISTS favorite boolean NOT NULL DEFAULT false;
+CREATE INDEX IF NOT EXISTS media_streams_user_favorite_idx ON public.media_streams(user_id, favorite);

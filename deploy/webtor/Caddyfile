@@ -1,0 +1,6 @@
+# Caddy obtains and renews the certificate automatically.
+# WEBTOR_DOMAIN comes from .env (domain only, no scheme).
+{$WEBTOR_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy webtor:8080
+}
