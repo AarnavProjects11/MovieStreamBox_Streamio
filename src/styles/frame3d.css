@@ -1,0 +1,492 @@
+/*
+ * Stream Box — "Volumetric" depth layer.
+ *
+ * Palette (from the brand sheet):
+ *   Blue #152A32 · Bright Green #91FF00 · Green #00D47F
+ *   Purple #C9B5FF · Cream #FFF0B5 · Manela #FFFCEE · White #FFFFFF
+ *
+ * Depth is built from three cheap layers instead of heavy assets:
+ *   1. a fixed ambient field of blurred colour blobs behind the app,
+ *   2. glass surfaces (translucent fill + hairline edge + inner highlight),
+ *   3. one perspective tilt per interactive surface, with inner elements
+ *      pushed along Z so badges and captions parallax against the artwork.
+ */
+
+/* --------------------------------------------------------------- *
+ * Themes
+ * --------------------------------------------------------------- */
+
+/* `html[...]` outranks the `:root` defaults in styles.css for the same tokens. */
+html[data-theme="rift"] {
+  color-scheme: dark;
+  --radius: 1rem;
+  --background: #0b171c;
+  --foreground: #f4fffc;
+  --card: #152a32;
+  --card-foreground: #fffcee;
+  --popover: #16303a;
+  --popover-foreground: #fffcee;
+  --primary: #91ff00;
+  --primary-foreground: #0b171c;
+  --secondary: #1e3a44;
+  --secondary-foreground: #eafff6;
+  --muted: #1a323b;
+  --muted-foreground: #a9c6cc;
+  --accent: #c9b5ff;
+  --accent-foreground: #152a32;
+  --destructive: #ff6b5a;
+  --destructive-foreground: #1a0a08;
+  --border: rgba(201, 181, 255, 0.16);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: #91ff00;
+  --tv-mx: #91ff00;
+  --tv-vlc: #c9b5ff;
+  --handle-line: rgba(255, 255, 255, 0.15);
+  --handle: rgba(255, 255, 255, 0.65);
+  --blob-1: #00d47f;
+  --blob-2: #c9b5ff;
+  --blob-3: #91ff00;
+  --hero-glow:
+    radial-gradient(60% 60% at 18% 0%, rgba(0, 212, 127, 0.34), transparent 70%),
+    radial-gradient(50% 50% at 85% 20%, rgba(201, 181, 255, 0.26), transparent 70%),
+    radial-gradient(70% 70% at 55% 100%, rgba(145, 255, 0, 0.16), transparent 70%);
+}
+
+html[data-theme="verdant"] {
+  color-scheme: dark;
+  --radius: 1.125rem;
+  --background: #061a15;
+  --foreground: #f2fff8;
+  --card: #0e2a22;
+  --card-foreground: #f6fff9;
+  --popover: #103028;
+  --popover-foreground: #f6fff9;
+  --primary: #00d47f;
+  --primary-foreground: #04140f;
+  --secondary: #15382d;
+  --secondary-foreground: #e8fff2;
+  --muted: #12332a;
+  --muted-foreground: #9dc4b3;
+  --accent: #fff0b5;
+  --accent-foreground: #152a32;
+  --destructive: #ff6b5a;
+  --destructive-foreground: #1a0a08;
+  --border: rgba(255, 240, 181, 0.16);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: #00d47f;
+  --tv-mx: #91ff00;
+  --tv-vlc: #fff0b5;
+  --handle-line: rgba(255, 240, 181, 0.18);
+  --handle: rgba(255, 240, 181, 0.7);
+  --blob-1: #00d47f;
+  --blob-2: #91ff00;
+  --blob-3: #c9b5ff;
+  --hero-glow:
+    radial-gradient(60% 60% at 20% 0%, rgba(0, 212, 127, 0.3), transparent 70%),
+    radial-gradient(55% 55% at 80% 15%, rgba(145, 255, 0, 0.18), transparent 70%),
+    radial-gradient(65% 65% at 50% 100%, rgba(255, 240, 181, 0.14), transparent 70%);
+}
+
+html[data-theme="manela"] {
+  color-scheme: light;
+  --radius: 1rem;
+  --background: #fffcee;
+  --foreground: #152a32;
+  --card: #ffffff;
+  --card-foreground: #152a32;
+  --popover: #ffffff;
+  --popover-foreground: #152a32;
+  --primary: #00d47f;
+  --primary-foreground: #04231a;
+  --secondary: #f1f7e9;
+  --secondary-foreground: #152a32;
+  --muted: #eef4e6;
+  --muted-foreground: #4c6b6c;
+  --accent: #c9b5ff;
+  --accent-foreground: #152a32;
+  --destructive: #c2410c;
+  --destructive-foreground: #fffcEE;
+  --border: rgba(21, 42, 50, 0.14);
+  --input: rgba(21, 42, 50, 0.08);
+  --ring: #00d47f;
+  --tv-mx: #00d47f;
+  --tv-vlc: #7c5cd6;
+  --handle-line: rgba(21, 42, 50, 0.2);
+  --handle: rgba(21, 42, 50, 0.5);
+  --blob-1: #00d47f;
+  --blob-2: #c9b5ff;
+  --blob-3: #fff0b5;
+  --hero-glow:
+    radial-gradient(60% 60% at 15% 0%, rgba(0, 212, 127, 0.2), transparent 70%),
+    radial-gradient(50% 50% at 85% 10%, rgba(201, 181, 255, 0.28), transparent 70%),
+    radial-gradient(65% 65% at 50% 100%, rgba(255, 240, 181, 0.5), transparent 70%);
+}
+
+html[data-theme="cream"] {
+  color-scheme: light;
+  --radius: 0.875rem;
+  --background: #fff0b5;
+  --foreground: #152a32;
+  --card: #fffcee;
+  --card-foreground: #152a32;
+  --popover: #fffcee;
+  --popover-foreground: #152a32;
+  --primary: #152a32;
+  --primary-foreground: #fff0b5;
+  --secondary: #fff8d4;
+  --secondary-foreground: #152a32;
+  --muted: #fbe9a4;
+  --muted-foreground: #5a6f68;
+  --accent: #00d47f;
+  --accent-foreground: #04231a;
+  --destructive: #b3341f;
+  --destructive-foreground: #fffcEE;
+  --border: rgba(21, 42, 50, 0.16);
+  --input: rgba(21, 42, 50, 0.08);
+  --ring: #152a32;
+  --tv-mx: #00d47f;
+  --tv-vlc: #7c5cd6;
+  --handle-line: rgba(21, 42, 50, 0.22);
+  --handle: rgba(21, 42, 50, 0.55);
+  --blob-1: #00d47f;
+  --blob-2: #c9b5ff;
+  --blob-3: #fffcee;
+  --hero-glow:
+    radial-gradient(60% 60% at 18% 0%, rgba(0, 212, 127, 0.18), transparent 70%),
+    radial-gradient(55% 55% at 82% 15%, rgba(201, 181, 255, 0.35), transparent 70%),
+    radial-gradient(60% 60% at 50% 100%, rgba(255, 252, 238, 0.9), transparent 70%);
+}
+
+/* Disney+ Hotstar: near-black navy, brand blue, Lion King gold. */
+html[data-theme="hotsar"] {
+  color-scheme: dark;
+  --radius: 0.5rem;
+  --background: #070a11;
+  --foreground: #ffffff;
+  --card: #101728;
+  --card-foreground: #ffffff;
+  --popover: #131c30;
+  --popover-foreground: #ffffff;
+  --primary: #1f80e0;
+  --primary-foreground: #ffffff;
+  --secondary: #16203a;
+  --secondary-foreground: #e9f1ff;
+  --muted: #121b2e;
+  --muted-foreground: #a4b1c6;
+  --accent: #e6a832;
+  --accent-foreground: #10131a;
+  --destructive: #ff5c5c;
+  --destructive-foreground: #1a0505;
+  --border: rgba(31, 128, 224, 0.24);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: #1f80e0;
+  --tv-mx: #1f80e0;
+  --tv-vlc: #e6a832;
+  --handle-line: rgba(120, 170, 255, 0.24);
+  --handle: rgba(190, 215, 255, 0.72);
+  --blob-1: #1f80e0;
+  --blob-2: #e6a832;
+  --blob-3: #2b3f8f;
+  --hero-glow:
+    radial-gradient(60% 60% at 16% 0%, rgba(31, 128, 224, 0.42), transparent 70%),
+    radial-gradient(52% 52% at 82% 18%, rgba(230, 168, 50, 0.3), transparent 70%),
+    radial-gradient(70% 70% at 50% 100%, rgba(43, 63, 143, 0.34), transparent 70%);
+}
+
+/* --------------------------------------------------------------- *
+ * Ambient depth field
+ * --------------------------------------------------------------- */
+
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background-color: var(--color-background);
+}
+
+.ambient__blob {
+  position: absolute;
+  width: 64vmax;
+  height: 64vmax;
+  border-radius: 50%;
+  filter: blur(86px);
+  opacity: 0.5;
+  animation: ambient-drift 32s ease-in-out infinite alternate;
+}
+
+.ambient__blob--a {
+  top: -26vmax;
+  left: -18vmax;
+  background: radial-gradient(circle, var(--blob-1, #00d47f) 0%, transparent 68%);
+}
+
+.ambient__blob--b {
+  top: -12vmax;
+  right: -24vmax;
+  opacity: 0.42;
+  background: radial-gradient(circle, var(--blob-2, #c9b5ff) 0%, transparent 68%);
+  animation-delay: -9s;
+}
+
+.ambient__blob--c {
+  bottom: -34vmax;
+  left: 22vmax;
+  opacity: 0.3;
+  background: radial-gradient(circle, var(--blob-3, #91ff00) 0%, transparent 68%);
+  animation-delay: -17s;
+}
+
+@keyframes ambient-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(4vmax, 3vmax, 0) scale(1.12);
+  }
+}
+
+/* Hotstar reads as flat brand panels, so its ambient field stays restrained. */
+html[data-theme="hotsar"] .ambient__blob {
+  opacity: 0.34;
+}
+
+/* Fine grain keeps the large gradients from banding on OLED panels. */
+.ambient__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* --------------------------------------------------------------- *
+ * Surfaces
+ * --------------------------------------------------------------- */
+
+.glass {
+  background-color: color-mix(in srgb, var(--card) 62%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--handle-line, color-mix(in srgb, var(--foreground) 14%, transparent));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 24px 60px -32px rgba(0, 0, 0, 0.85);
+}
+
+.surface {
+  background-color: color-mix(in srgb, var(--card) 82%, transparent);
+  border: 1px solid var(--handle-line, color-mix(in srgb, var(--foreground) 14%, transparent));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 30px 70px -40px rgba(0, 0, 0, 0.9);
+}
+
+/* Hairline frame with registration handles, as in the identity sheet. */
+.frame {
+  position: relative;
+}
+
+.frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--handle-line, color-mix(in srgb, var(--foreground) 16%, transparent));
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.frame--handles::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--handle, rgba(255, 255, 255, 0.6)), var(--handle, rgba(255, 255, 255, 0.6))),
+    linear-gradient(var(--handle, rgba(255, 255, 255, 0.6)), var(--handle, rgba(255, 255, 255, 0.6))),
+    linear-gradient(var(--handle, rgba(255, 255, 255, 0.6)), var(--handle, rgba(255, 255, 255, 0.6))),
+    linear-gradient(var(--handle, rgba(255, 255, 255, 0.6)), var(--handle, rgba(255, 255, 255, 0.6)));
+  background-repeat: no-repeat;
+  background-size: 7px 7px;
+  background-position:
+    0 0,
+    100% 0,
+    0 100%,
+    100% 100%;
+}
+
+/* --------------------------------------------------------------- *
+ * 3D tilt
+ * --------------------------------------------------------------- */
+
+.scene {
+  perspective: 1200px;
+  perspective-origin: 50% 40%;
+}
+
+.tilt {
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
+  transition:
+    transform 460ms cubic-bezier(0.22, 0.68, 0, 1),
+    box-shadow 460ms ease;
+}
+
+.tilt[data-lift="true"] {
+  box-shadow:
+    0 40px 70px -34px rgba(0, 0, 0, 0.9),
+    0 0 0 1px color-mix(in srgb, var(--ring) 45%, transparent);
+}
+
+/* Keyboard / D-pad focus: no pointer to tilt with, so lift straight up. */
+.tilt:focus-visible,
+.tilt:focus-within {
+  transform: rotateX(0deg) rotateY(0deg) translateZ(28px) scale(1.03);
+}
+
+.tilt__layer {
+  transform: translateZ(0);
+  transition: transform 460ms cubic-bezier(0.22, 0.68, 0, 1);
+}
+
+.tilt[data-lift="true"] .tilt__layer,
+.tilt:focus-within .tilt__layer {
+  transform: translateZ(34px);
+}
+
+/* --------------------------------------------------------------- *
+ * Chrome
+ * --------------------------------------------------------------- */
+
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-foreground);
+}
+
+.nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 999px;
+  padding: 0.45rem 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.nav-pill:hover {
+  background-color: color-mix(in srgb, var(--foreground) 9%, transparent);
+}
+
+.btn-depth {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.8rem 1.35rem;
+  font-weight: 600;
+  transition:
+    transform 200ms cubic-bezier(0.22, 0.68, 0, 1),
+    box-shadow 200ms ease,
+    background-color 200ms ease;
+}
+
+.btn-depth--primary {
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 16px 34px -16px color-mix(in srgb, var(--ring) 70%, transparent);
+}
+
+.btn-depth--glass {
+  background-color: color-mix(in srgb, var(--card) 55%, transparent);
+  border: 1px solid var(--handle-line, color-mix(in srgb, var(--foreground) 18%, transparent));
+  color: var(--color-foreground);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+.btn-depth:hover,
+.btn-depth:focus-visible {
+  transform: translateY(-2px);
+}
+
+.btn-depth:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* --------------------------------------------------------------- *
+ * Responsive: phone, TV, reduced motion
+ * --------------------------------------------------------------- */
+
+/* Phones: softer depth, no wide shadows (they read as mud on small screens). */
+@media (max-width: 640px) {
+  .ambient__blob {
+    filter: blur(58px);
+    width: 78vmax;
+    height: 78vmax;
+    opacity: 0.4;
+  }
+  .glass {
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+  .surface {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 18px 40px -28px rgba(0, 0, 0, 0.9);
+  }
+  .btn-depth {
+    padding: 0.75rem 1.1rem;
+  }
+}
+
+/* Touch devices: hover is sticky, so the lift is focus/interaction only. */
+@media (hover: none) {
+  .tilt:hover {
+    transform: none;
+  }
+}
+
+/* TV / 10-foot UI: bigger hit areas and a heavier focus ring. */
+@media (min-width: 1600px) {
+  :focus-visible {
+    outline-width: 3px;
+    outline-offset: 4px;
+  }
+  .nav-pill {
+    padding: 0.55rem 1rem;
+    font-size: 0.86rem;
+  }
+  .btn-depth {
+    padding: 0.95rem 1.6rem;
+    font-size: 1.05rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient__blob {
+    animation: none;
+  }
+  .tilt,
+  .tilt__layer,
+  .btn-depth,
+  .nav-pill {
+    transition: none;
+  }
+  .tilt:focus-visible,
+  .tilt:focus-within {
+    transform: none;
+  }
+  .tilt:focus-visible .tilt__layer {
+    transform: none;
+  }
+}

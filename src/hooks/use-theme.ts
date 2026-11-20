@@ -1,7 +1,12 @@
 import { useSyncExternalStore } from "react";
 
 export const THEMES = [
-  { id: "system", label: "System default", swatches: ["#0a0a1a", "#fafafa", "#4f46e5", "#c9a84c"] },
+  { id: "system", label: "System default", swatches: ["#152a32", "#fffcEE", "#91ff00", "#c9b5ff"] },
+  { id: "rift", label: "Rift", swatches: ["#152a32", "#91ff00", "#c9b5ff", "#00d47f"] },
+  { id: "verdant", label: "Verdant", swatches: ["#061a15", "#00d47f", "#91ff00", "#fff0b5"] },
+  { id: "manela", label: "Manela (light)", swatches: ["#fffcEE", "#152a32", "#00d47f", "#c9b5ff"] },
+  { id: "cream", label: "Cream (light)", swatches: ["#fff0b5", "#152a32", "#00d47f", "#fffceE"] },
+  { id: "hotsar", label: "Hotstar", swatches: ["#070a11", "#1f80e0", "#e6a832", "#ffffff"] },
   {
     id: "midnight",
     label: "Midnight Indigo",
@@ -19,6 +24,9 @@ export type ThemeId = (typeof THEMES)[number]["id"];
 /** Netflix is opt-in: the app keeps its previous default until the user picks it. */
 const STORAGE_KEY = "streambox.theme";
 const DEFAULT_THEME: ThemeId = "system";
+/** The dark and light halves of "system", both from the brand palette. */
+const DARK_THEME: ThemeId = "rift";
+const LIGHT_THEME: ThemeId = "manela";
 
 function isThemeId(value: unknown): value is ThemeId {
   return THEMES.some((t) => t.id === value);
@@ -31,7 +39,7 @@ function prefersDark(): boolean {
 
 function resolveTheme(t: ThemeId): Exclude<ThemeId, "system"> {
   if (t !== "system") return t;
-  return prefersDark() ? "midnight" : "paper";
+  return prefersDark() ? DARK_THEME : LIGHT_THEME;
 }
 
 export function applyTheme(theme: ThemeId) {

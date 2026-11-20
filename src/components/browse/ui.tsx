@@ -3,6 +3,7 @@ import { Star, Film, AlertTriangle } from "lucide-react";
 import type { CatalogItem } from "@/lib/movie-api/provider";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Tilt3D } from "./depth";
 
 export function PosterCard({
   item,
@@ -17,13 +18,13 @@ export function PosterCard({
 }) {
   const inner = (
     <>
-      <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-muted">
+      <div className="relative aspect-[2/3] overflow-hidden rounded-2xl bg-muted ring-1 ring-inset ring-white/10">
         {item.poster ? (
           <img
             src={item.poster}
             alt={item.name}
             loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 group-focus-visible:scale-105"
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06] group-focus-within:scale-[1.06]"
           />
         ) : (
           <div className="flex h-full items-center justify-center">
@@ -31,46 +32,53 @@ export function PosterCard({
           </div>
         )}
         {rank != null && (
-          <span className="absolute left-2 top-2 inline-flex min-w-6 items-center justify-center rounded-md bg-background/80 px-1.5 py-0.5 text-xs font-bold text-primary backdrop-blur">
+          <span className="tilt__layer absolute left-2 top-2 inline-flex min-w-6 items-center justify-center rounded-full bg-background/70 px-1.5 py-0.5 text-[11px] font-bold text-primary backdrop-blur">
             #{rank}
           </span>
         )}
         {item.rating && (
-          <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md bg-background/80 px-1.5 py-0.5 text-xs font-semibold backdrop-blur">
+          <span className="tilt__layer absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-background/70 px-1.5 py-0.5 text-[11px] font-semibold backdrop-blur">
             <Star className="h-3 w-3 fill-primary text-primary" />
             {item.rating}
           </span>
         )}
         {item.sourceLabel && (
-          <span className="absolute bottom-2 left-2 rounded-md bg-primary/90 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground backdrop-blur">
+          <span className="tilt__layer absolute bottom-2 left-2 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-semibold lowercase tracking-wide text-primary-foreground backdrop-blur">
             {item.sourceLabel}
           </span>
         )}
       </div>
-      <p className="mt-2 truncate text-sm font-semibold">{item.name}</p>
-      <p className="truncate text-xs text-muted-foreground">
-        {[item.year, caption].filter(Boolean).join(" · ")}
-      </p>
+      <div className="tilt__layer mt-2.5 px-0.5">
+        <p className="truncate text-sm font-semibold tracking-[-0.01em]">{item.name}</p>
+        <p className="truncate text-xs text-muted-foreground">
+          {[item.year, caption].filter(Boolean).join(" / ")}
+        </p>
+      </div>
     </>
   );
-  const cls =
-    "group block rounded-xl p-1 outline-none transition-transform focus-visible:scale-[1.06] focus-visible:ring-4 focus-visible:ring-primary";
-  return item.type === "movie" ? (
-    <Link to="/browse/movie/$id" params={{ id: item.id }} className={cls}>
-      {inner}
-    </Link>
-  ) : (
-    <Link to="/browse/series/$id" params={{ id: item.id }} className={cls}>
-      {inner}
-    </Link>
+  const cls = "group block rounded-2xl outline-none";
+  return (
+    <div className="scene">
+      <Tilt3D className={cls}>
+        {item.type === "movie" ? (
+          <Link to="/browse/movie/$id" params={{ id: item.id }} className="block">
+            {inner}
+          </Link>
+        ) : (
+          <Link to="/browse/series/$id" params={{ id: item.id }} className="block">
+            {inner}
+          </Link>
+        )}
+      </Tilt3D>
+    </div>
   );
 }
 
 export function PosterRow({ title, items }: { title: string; items: CatalogItem[] }) {
   return (
     <section className="space-y-3">
-      <h2 className="font-display text-xl tracking-wide">{title}</h2>
-      <div className="-mx-1 flex gap-3 overflow-x-auto pb-3 [scrollbar-width:thin]">
+      <h2 className="font-display text-lg font-semibold tracking-[-0.02em] sm:text-xl">{title}</h2>
+      <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-4 [scrollbar-width:thin]">
         {items.map((i) => (
           <div key={i.id} className="w-32 shrink-0 sm:w-40">
             <PosterCard item={i} />
@@ -83,7 +91,7 @@ export function PosterRow({ title, items }: { title: string; items: CatalogItem[
 
 export function PosterGrid({ items }: { items: CatalogItem[] }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
       {items.map((i) => (
         <PosterCard key={i.type + i.id} item={i} />
       ))}
@@ -93,9 +101,9 @@ export function PosterGrid({ items }: { items: CatalogItem[] }) {
 
 export function GridSkeleton({ n = 12 }: { n?: number }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
       {Array.from({ length: n }).map((_, i) => (
-        <div key={i} className="aspect-[2/3] animate-pulse rounded-xl bg-muted" />
+        <div key={i} className="aspect-[2/3] animate-pulse rounded-2xl bg-muted" />
       ))}
     </div>
   );
@@ -103,14 +111,11 @@ export function GridSkeleton({ n = 12 }: { n?: number }) {
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-8 text-center">
+    <div className="surface flex flex-col items-center gap-3 rounded-2xl p-8 text-center">
       <AlertTriangle className="h-8 w-8 text-destructive" />
       <p className="text-sm">{message}</p>
       {onRetry && (
-        <button
-          onClick={onRetry}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground focus-visible:ring-4 focus-visible:ring-primary"
-        >
+        <button onClick={onRetry} className="btn-depth btn-depth--primary text-sm">
           Try again
         </button>
       )}

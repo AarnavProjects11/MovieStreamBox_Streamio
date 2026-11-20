@@ -37,6 +37,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { setAdultMode, useAdultMode } from "@/lib/adult-flags";
 import { useTheme } from "@/hooks/use-theme";
+import { AmbientBackdrop } from "@/components/browse/depth";
 
 export const Route = createFileRoute("/_authenticated/browse")({
   component: BrowseLayout,
@@ -66,7 +67,7 @@ function AdultNavLink() {
       activeProps={{ className: "bg-primary text-primary-foreground" }}
       inactiveProps={{ className: "text-muted-foreground hover:text-foreground" }}
       aria-label="18+"
-      className="inline-flex shrink-0 items-center gap-1 rounded-lg px-1 py-1.5 text-xs font-semibold outline-none focus-visible:ring-4 focus-visible:ring-primary"
+      className="nav-pill shrink-0"
     >
       <Lock className="h-3.5 w-3.5" />
       <span className="hidden sm:inline">18+</span>
@@ -210,17 +211,21 @@ function BrowseLayout() {
 
   return (
     <BrowseKeyboard>
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="relative min-h-screen bg-background text-foreground">
+        <AmbientBackdrop />
         {!isNetflix && (
-          <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
-            <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-3">
+          <header className="sticky top-0 z-30 px-3 pt-3 sm:px-5">
+            <div className="glass frame mx-auto flex max-w-7xl items-center gap-2 rounded-2xl px-2.5 py-2">
               <Link
                 to="/browse"
-                className="font-display text-xl brand-gradient shrink-0 rounded focus-visible:ring-4 focus-visible:ring-primary"
+                className="wordmark shrink-0 px-1 text-[13px] sm:text-[15px]"
               >
-                STREAM BOX
+                Stream Box
               </Link>
-              <nav className="flex flex-1 gap-0.5 overflow-x-auto [scrollbar-width:none]">
+              <nav
+                aria-label="Sections"
+                className="flex flex-1 gap-0.5 overflow-x-auto [scrollbar-width:none]"
+              >
                 {NAV.map((n) => (
                   <Link
                     key={n.to}
@@ -229,21 +234,21 @@ function BrowseLayout() {
                     activeProps={{ className: "bg-primary text-primary-foreground" }}
                     inactiveProps={{ className: "text-muted-foreground hover:text-foreground" }}
                     aria-label={n.label}
-                    className="inline-flex shrink-0 items-center gap-1 rounded-lg px-1 py-1.5 text-xs font-semibold outline-none focus-visible:ring-4 focus-visible:ring-primary"
+                    className="nav-pill shrink-0"
                   >
                     <n.icon className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">{n.label}</span>
+                    <span className="hidden md:inline">{n.label}</span>
                   </Link>
                 ))}
                 <AdultNavLink />
               </nav>
               <Link
                 to="/dashboard"
-                className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border px-1.5 py-1.5 text-xs font-semibold focus-visible:ring-4 focus-visible:ring-primary"
+                className="nav-pill shrink-0 bg-foreground/5"
                 aria-label="My streams"
               >
                 <LayoutGrid className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">My Streams</span>
+                <span className="hidden md:inline">My Streams</span>
               </Link>
               <CommandHint />
               <ThemePicker />
@@ -251,7 +256,11 @@ function BrowseLayout() {
             </div>
           </header>
         )}
-        <main className={isFullBleed ? undefined : "mx-auto max-w-7xl px-4 py-6"}>
+        <main
+          className={
+            isFullBleed ? undefined : "relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6"
+          }
+        >
           <Outlet />
         </main>
       </div>

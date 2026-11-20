@@ -49,12 +49,12 @@ export function CatalogPage({ type, title }: { type: MetaType; title: string }) 
   const showGenreChips = !!preset && !preset.requiredExtras.some((e) => e.name === "genre");
   const genres = preset?.genreOptions.length ? preset.genreOptions : GENRES;
   const chip = (active: boolean) =>
-    `shrink-0 rounded-full px-4 py-2 text-sm font-semibold outline-none focus-visible:ring-4 focus-visible:ring-primary ${active ? "bg-primary text-primary-foreground" : "bg-card border border-border"}`;
+    `shrink-0 rounded-full px-4 py-2 text-sm font-semibold outline-none transition-colors ${active ? "bg-primary text-primary-foreground" : "glass text-foreground hover:bg-foreground/10"}`;
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="font-display text-3xl">{title}</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">{title}</h1>
         {preset && (
           <p className="text-xs text-muted-foreground">
             {preset.label} · via {preset.addonName}
@@ -65,7 +65,7 @@ export function CatalogPage({ type, title }: { type: MetaType; title: string }) 
       {catalogs.isLoading && <GridSkeleton />}
 
       {!catalogs.isLoading && !preset && (
-        <div className="space-y-3 rounded-2xl border border-border bg-card p-6 text-center">
+        <div className="surface space-y-3 rounded-2xl p-6 text-center">
           <Puzzle className="mx-auto h-8 w-8 text-primary" />
           <p className="font-semibold">No add-on offers a catalog for this</p>
           <p className="text-sm text-muted-foreground">
@@ -101,7 +101,7 @@ export function CatalogPage({ type, title }: { type: MetaType; title: string }) 
           <button
             onClick={() => q.fetchNextPage()}
             disabled={q.isFetchingNextPage}
-            className="rounded-lg border border-border bg-card px-6 py-3 font-semibold focus-visible:ring-4 focus-visible:ring-primary"
+            className="btn-depth btn-depth--glass disabled:opacity-60"
           >
             {q.isFetchingNextPage ? "Loading…" : "Load more"}
           </button>

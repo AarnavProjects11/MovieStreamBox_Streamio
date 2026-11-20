@@ -2,6 +2,7 @@
 @source "../src";
 @import "tw-animate-css";
 @import "./styles/netflix.css";
+@import "./styles/frame3d.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -40,8 +41,8 @@
   --color-ring-offset-background: var(--background);
   --color-tv-mx: var(--tv-mx);
   --color-tv-vlc: var(--tv-vlc);
-  --font-display: "Archivo Black", "Impact", sans-serif;
-  --font-sans: "Hind", system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Archivo Black", system-ui, sans-serif;
+  --font-sans: "Inter", "Hind", system-ui, sans-serif;
 }
 
 /* ---------- Themes ---------- */
@@ -224,11 +225,13 @@
 
   h1, h2, h3, .font-display {
     font-family: var(--font-display);
-    letter-spacing: 0.01em;
+    letter-spacing: -0.02em;
   }
 
+  /* Never remove the focus ring: keyboard and D-pad navigation depend on it. */
   :focus-visible {
-    outline: none;
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
   }
 }
 
